@@ -16,7 +16,7 @@ async function main() {
 	app.use(cookieParser());
 	app.use(
 		cors({
-			origin: ["http://localhost:5173", "https://echobot.mohamedbgz.dev/"],
+			origin: ["http://localhost:5173", "https://echobot.mohamedbgz.dev"],
 			credentials: true,
 
 			methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
