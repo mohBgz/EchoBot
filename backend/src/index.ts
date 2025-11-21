@@ -14,10 +14,15 @@ async function main() {
 
 	// Middleware
 	app.use(cookieParser());
-	app.options("*", cors({
-  origin: ["http://localhost:5173", "https://echobot.mohamedbgz.dev"],
-  credentials: true,
-}));
+	app.use(
+		cors({
+			origin: ["https://echobot.mohamedbgz.dev/*"], // Frontend URLs
+			credentials: true,
+
+			methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
+			allowedHeaders: ["Content-Type", "Authorization"],
+		})
+	);
 	app.use(express.json());
 
 	// Health check route
