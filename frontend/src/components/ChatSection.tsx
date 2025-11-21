@@ -74,30 +74,27 @@ export const ChatSection = ({
     ),
   };
   return (
-    <div
-      className={className}
-      ref={chatContainerRef}
-    >
+    <div className={className} ref={chatContainerRef}>
       {messagesByMode[mode].map((msg) => (
         <div
           key={msg.id}
           className={`flex ${
-            msg.from === "user" ? "justify-end " : "justify-start"
-          } gap-3 mt-5 `}
+            msg.from === "user" ? "justify-end" : "justify-start"
+          } gap-3 mb-6 text-lg mdtext-xl`}
         >
           {msg.from === "bot" && (
-            <div className="bg-gray-600 flex items-center justify-center rounded-full size-8 shrink-0">
-              <BotMessageSquare size={20} />
+            <div className="bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center rounded-xl size-9 shrink-0">
+              <BotMessageSquare size={20} className="text-white" />
             </div>
           )}
           <div
-            className={` ${
+            className={`${
               msg.from === "user"
-                ? `bg-gradient-to-bl from-blue-600 to-blue-900 rounded-tr-xs`
-                : `bg-gray-900 rounded-tl-xs border`
-            } px-4 space-y-2 border-gray-700 h-fit  py-3 rounded-xl  mt-2`}
+                ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white"
+                : "bg-gray-800/80 border border-gray-700 text-gray-100"
+            } px-5 space-y-2 max-w-[80%] h-fit py-3.5 rounded-2xl shadow-md`}
           >
-            <div className=" text-gray-300 leading-relaxed">
+            <div className="leading-relaxed">
               {msg.from === "bot" && msg.isThinking ? (
                 <TypingIndicator />
               ) : (
@@ -109,13 +106,13 @@ export const ChatSection = ({
                 </ReactMarkdown>
               )}
             </div>
-            {msg.from == "user" && (
-              <div className="text-sm text-gray-400">{msg.timestamp}</div>
+            {msg.from === "user" && (
+              <div className="text-sm text-blue-200/80">{msg.timestamp}</div>
             )}
           </div>
           {msg.from === "user" && (
-            <div className="bg-blue-600 flex items-center justify-center rounded-full size-8 shrink-0">
-              <User size={20} />
+            <div className="bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center rounded-xl size-9 shrink-0">
+              <User size={20} className="text-white" />
             </div>
           )}
         </div>

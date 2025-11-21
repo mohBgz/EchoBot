@@ -10,7 +10,7 @@ import {
   BotMessageSquare,
   X,
   Send,
-  Minimize2,
+  
   MessageCircleMore,
   File,
   FileUp,
@@ -32,8 +32,11 @@ import { ChatSection } from "./ChatSection.js";
 import { bytesToKb } from "../utils/bytesToKb.js";
 import { formatTimestamp } from "../utils/dateFormat.js";
 import { displayName } from "../utils/displayName.js";
-
-export const BubbleChat = () => {
+interface BubbleChatProps {
+  isVisible: boolean;
+  setIsVisible: React.Dispatch<React.SetStateAction<boolean>>;
+}
+export const BubbleChat:React.FC<BubbleChatProps> = ({isVisible, setIsVisible}) => {
   const handleRagChatAfterUpload = async (file: UploadedFile) => {
     try {
       const payload = {
@@ -56,7 +59,7 @@ export const BubbleChat = () => {
 
       setMessagesByMode((prev) => ({
         ...prev,
-        [mode]: [...prev[mode], answerMessage],
+        [mode]: [answerMessage],
       }));
     } catch (err) {
       console.error("Error fetching initial ragChat response:", err);
@@ -122,7 +125,6 @@ export const BubbleChat = () => {
 
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
 
- 
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
@@ -146,33 +148,39 @@ export const BubbleChat = () => {
     cms: [],
   });
 
-useEffect(() => {
-  const fetchFiles = async () => {
-    try {
-      const fetchUrl = mode === "docs" ? `${apiUrl}/docs` : `${apiUrl}/cms`;
-      const response = await axios.get(fetchUrl, { withCredentials: true });
-      const files: UploadedFile[] = response.data.files || [];
+ 
 
-      setUploadedFiles((prev) => ({
-        ...prev,
-        [mode]: files,
-      }));
 
-      // Auto-select first file if none is selected
-      if (mode !== "chat" && !selectedFilesByMode[mode] && files.length > 0) {
-        setSelectedFilesByMode((prev) => ({
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const fetchUrl = mode === "docs" ? `${apiUrl}/docs` : `${apiUrl}/cms`;
+        const response = await axios.get(fetchUrl, { withCredentials: true });
+        const files: UploadedFile[] = response.data.files || [];
+
+        setUploadedFiles((prev) => ({
           ...prev,
-          [mode]: files[0],
+          [mode]: files,
         }));
-        setIsPanelOpen(true);
-      }
-    } catch (error: any) {
-      console.error("Error fetching files:", error.response?.data || error.message);
-    }
-  };
 
-  fetchFiles();
-}, [mode]);
+        // Auto-select first file if none is selected
+        if (mode !== "chat" && !selectedFilesByMode[mode] && files.length > 0) {
+          setSelectedFilesByMode((prev) => ({
+            ...prev,
+            [mode]: files[0],
+          }));
+          setIsPanelOpen(true);
+        }
+      } catch (error: any) {
+        console.error(
+          "Error fetching files:",
+          error.response?.data || error.message
+        );
+      }
+    };
+
+    fetchFiles();
+  }, [mode]);
 
   useEffect(() => {
     if (isTyping) {
@@ -395,10 +403,25 @@ useEffect(() => {
     }
   };
 
+  
   return (
-    <div className="w-xl min-h-[600px] rounded-xl flex flex-col justify-between overflow-hidden">
+    <div className="
+     flex flex-col
+    fixed 
+    inset-0
+    drop-shadow-xl
+    md:rounded-2xl
+    overflow-hidden
+    md:inset-auto
+    md:bottom-5 md:right-2
+    md:max-w-[30vw] md:max-h-[600px]
+    md: min-w-[400px] md:min-h-[600px]
+    shadow-lg
+    bg-gradient-to-b from-gray-950 to-gray-900
+    
+  " >
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-800 w-full py-4 px-3 gap-3 flex flex-col">
+      <div className="bg-gradient-to-r from-blue-500 to-blue-900 w-full py-4 px-4 gap-6 flex flex-col sticky top-0 z-50 drop-shadow-sm drop-shadow-blue-800">
         <div>
           <div className="flex justify-between items-center">
             <div className="flex gap-2 items-center">
@@ -406,18 +429,18 @@ useEffect(() => {
                 <BotMessageSquare color="white" />
               </div>
 
-              <div className="text-lg flex-col gap-1">
-                <div className="font-semibold text-gray-50">Echo Bot</div>
-                <div className="text-sm text-gray-200">
+              <div className="  flex-col gap-1">
+                <div  className=" font-semibold text-gray-50 text-xl">Echo Bot</div>
+                <div  className=" text-[0.9rem] text-gray-200 bg-blue-800 rounded full px-2 py-0.5 w-fit ">
                   {capitalizeFirstLetter(mode) + " Mode"}
                 </div>
               </div>
             </div>
             <div className="flex gap-3">
-              <button>
-                <Minimize2 size={20} className="text-gray-100" />
-              </button>
-              <button>
+             
+              <button onClick={()=>{
+                setIsVisible(!isVisible);
+              }}>
                 <X size={20} className="text-gray-100" />
               </button>
             </div>
@@ -425,25 +448,27 @@ useEffect(() => {
         </div>
 
         {/* Mode Toggle */}
-        <div className="flex justify-center w-full flex-col items-center">
-          <div className="flex bg-blue-900 rounded-md w-1/2 justify-between overflow-hidden">
+        <div className="flex justify-center">
+          <div className="flex w-fit items-center bg-blue-900 rounded-md overflow-auto">
             {["chat", "docs", "cms"].map((option) => (
               <button
                 key={option}
                 onClick={() => {
                   setMode(option as SetStateAction<Mode>);
                 }}
-                className={`flex items-center gap-2 transition-colors py-2 px-4 duration-200
-                ${
-                  option === mode
-                    ? "bg-blue-950 font-medium text-gray-100"
-                    : "text-gray-300"
-                }`}
+                
+                className={`text-[1rem]  flex items-center gap-2 transition-colors py-2 px-4 duration-200 whitespace-nowrap
+        ${
+          option === mode
+            ? "bg-blue-950 font-medium text-gray-100"
+            : "text-gray-300 hover:text-gray-100 hover:bg-blue-800"
+        }`}
               >
-                {option === "chat" && <MessageCircleMore size={18} />}
+                {option === "chat" && <MessageCircleMore 
+    className="w-4 h-4 sm:w-5 sm:h-5" 
+  />}
                 {option === "docs" && <File size={18} />}
                 {option === "cms" && <Braces size={18} />}
-
                 {capitalizeFirstLetter(option)}
               </button>
             ))}
@@ -457,7 +482,6 @@ useEffect(() => {
           className="z-50 shadow-md shadow-black bg-gray-900 flex justify-between p-4 gap-2 font-semibold hover:cursor-pointer"
           onClick={() => {
             setIsPanelOpen(!isPanelOpen);
-            
           }}
         >
           <div className="flex items-center gap-4">
@@ -496,7 +520,8 @@ useEffect(() => {
         </div>
       )}
 
-      <div className="relative flex flex-1">
+      {/* Chat Container */}
+      <div className="relative flex flex-1 overflow-hidden">
         {mode !== "chat" && uploadedFiles && uploadedFiles[mode].length > 0 && (
           <AnimatePresence>
             {isPanelOpen && uploadedFiles && (
@@ -507,7 +532,7 @@ useEffect(() => {
                 animate="visible"
                 exit="hidden"
                 //transition={{ duration: 0.19, ease: "easeInOut" }}
-                className="bg-gradient-to-b from-gray-900 to-blue-950 absolute top-0 right-0 left-0 bottom-0 h-full flex flex-col p-6 gap-3 overflow-hidden"
+                className="bg-gradient-to-b from-gray-900 to-blue-950 absolute top-0 right-0 left-0 bottom-0 h-full flex flex-col p-6 gap-3 overflow-y-auto"
                 onClick={() => setIsPanelOpen(false)}
               >
                 {uploadedFiles[mode].map((file, index) => (
@@ -529,7 +554,7 @@ useEffect(() => {
                         [mode]: file,
                       }));
 
-                     // setIsPanelOpen(false); // Close panel after selection
+                      // setIsPanelOpen(false); // Close panel after selection
                     }}
                   >
                     <div className="flex gap-2 items-center">
@@ -571,7 +596,7 @@ useEffect(() => {
                     {selectedFilesByMode[mode] &&
                       selectedFilesByMode[mode].id === file.id && (
                         <div className="mt-1.5 text-sm text-gray-300 flex items-center gap-2">
-                          <span className="bg-gray-800/50 px-2 py-0.5 rounded-full text-xs text-blue-400">
+                          <span className="bg-gray-800/50 px-1 py-0.5 rounded-full text-xs text-center text-blue-400">
                             {formatTimestamp(
                               selectedFilesByMode[mode].uploaded_at
                             )}
@@ -669,7 +694,7 @@ useEffect(() => {
             onClick={() => {
               inputFileSectionRef.current?.click();
             }}
-            className="relative bg-gray-950 flex-1 flex-col flex justify-center items-center gap-8 p-8"
+            className="relative bg-gray-950 flex-1  flex-col flex justify-center items-center gap-6 p-6 py-12"
           >
             {error && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -694,7 +719,7 @@ useEffect(() => {
               onChange={handleFileUpload}
               accept={fileAccept}
             />
-            <div className="text-white text-4xl font-bold tracking-tight">
+            <div className="text-white text-3xl  font-bold tracking-tight">
               {mode === "docs"
                 ? "Document Upload"
                 : mode === "cms"
@@ -707,7 +732,7 @@ useEffect(() => {
                 isDragging
                   ? "border-blue-500 bg-blue-950/30"
                   : "border-gray-700"
-              } bg-gray-900/50 flex flex-col justify-center items-center border-2 hover:border-gray-600 px-12 py-12 border-dashed rounded-xl transition-all duration-300 hover:bg-gray-900/70 cursor-pointer group min-w-[500px]`}
+              }  bg-gray-900/50 flex flex-col justify-center items-center border-2 hover:border-gray-600 py-5 px-3 border-dashed rounded-xl transition-all duration-300 hover:bg-gray-900/70 cursor-pointer group `}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -721,28 +746,35 @@ useEffect(() => {
     }`}
               >
                 {isUploading ? (
-                  <div className="text-blue-400 font-semibold text-2xl">
+                  <div className="text-blue-400 font-semibold">
                     {uploadProgress} %
                   </div>
                 ) : (
                   <Upload
-                    size={40}
+                    size={30}
                     className="text-gray-400 group-hover:text-gray-300 transition-colors"
                   />
                 )}
               </div>
 
-              <div className="text-gray-100 text-2xl font-semibold mb-2 text-center">
-                {mode === "cms"
-                  ? "Drag & drop CMS JSON file here"
-                  : "Drag & drop files here"}
+            <div className="hidden lg:block text-[clamp(6px,2vw,20px)] text-gray-300/90 text-lg font-semibold mb-2 text-center">
+  {mode === "cms"
+    ? "Drag & drop CMS JSON file here"
+    : "Drag & drop files here"}
+</div>
+
+ <div className="  hidden lg:block text-center text-gray-400 text-lg  mb-6 ">
+                 Or click to browse from your computer
               </div>
 
-              <div className="text-gray-400 text-base mb-6">
-                or click to browse from your computer
+ <div className="  lg:hidden text-center text-gray-300 font-semibold text-xl  mb-6">
+                 Click to browse from your device
               </div>
 
-              <div className="text-gray-500 text-sm bg-gray-800/50 px-4 py-2 rounded-full">
+
+             
+
+              <div className="text-gray-500 bg-gray-800/50 px-4 py-2 rounded-full">
                 {mode === "docs"
                   ? "Supported: PDF, DOCX, CSV"
                   : "Supported: JSON"}
@@ -751,8 +783,8 @@ useEffect(() => {
           </div>
         ) : (
           <ChatSection
-            key="chat-section"
-            className="bg-gray-950 flex-1 py-8 px-8 overflow-y-auto"
+            key="chat-section" 
+            className="bg-gradient-to-b from-gray-950 to-gray-900 flex-1 py-6 px-4 overflow-y-auto min-h-0"
             mode={mode}
             messagesByMode={messagesByMode}
             chatContainerRef={chatContainerRef}
@@ -760,16 +792,14 @@ useEffect(() => {
         )}
       </div>
 
-      {/* message + Send */}
+      {/* Input Form */}
       <form
         onSubmit={handleSubmit}
-        className="flex gap-5 bg-black border-t w-full px-4 py-4 items-center"
+        className="flex gap-3 bg-gray-900/80 backdrop-blur border-t border-gray-800 w-full px-4 py-3 items-center"
       >
-        <div className="relative flex flex-1 items-center bg-gray-100 rounded-full border border-gray-300 focus-within:ring-1 focus-within:ring-gray-400">
-          {/* File Upload only for docs mode with files */}
-
+        <div className="relative flex flex-1 items-center bg-gray-800 rounded-xl border border-gray-700 focus-within:ring-1 focus-within:ring-blue-500">
           <input
-            className="px-6 disabled:cursor-not-allowed text-gray-800 font-semibold disabled:bg-black/25  placeholder:text-gray-600 placeholder:font-semibold disabled:opacity-50 flex-1 outline-none py-2"
+            className="px-4 w-full disabled:cursor-not-allowed text-gray-100 bg-transparent font-medium disabled:bg-gray-800/25 placeholder:text-gray-500 placeholder:font-medium placeholder:text-lg disabled:opacity-50 flex-1 outline-none py-2.5"
             type="text"
             placeholder={`${
               mode === "chat"
@@ -803,37 +833,35 @@ useEffect(() => {
           />
         </div>
 
-        <div className="size-9 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition active:scale-[0.95]">
-          <button
-            type="submit"
-            onClick={(e) => {
-              if (isTyping) {
-                e.preventDefault();
-                setIsTyping(false);
-              }
-            }}
-            className="size-9 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition active:scale-[0.95]"
-          >
-            {isTyping ? (
-              <Square className="text-white animate-pulse" />
-            ) : mode === "docs" && isPanelOpen ? (
-              <div onClick={handleUploadClick}>
-                <FileUp />
+        <button
+          type="submit"
+          onClick={(e) => {
+            if (isTyping) {
+              e.preventDefault();
+              setIsTyping(false);
+            }
+          }}
+          className="size-10 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-all active:scale-[0.97]"
+        >
+          {isTyping ? (
+            <Square className="text-white animate-pulse" />
+          ) : mode === "docs" && isPanelOpen ? (
+            <div onClick={handleUploadClick}>
+              <FileUp />
 
-                <input
-                  type="file"
-                  ref={inputFileRef}
-                  multiple
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  accept=".pdf,.csv,.docx"
-                />
-              </div>
-            ) : (
-              <Send />
-            )}
-          </button>
-        </div>
+              <input
+                type="file"
+                ref={inputFileRef}
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+                accept=".pdf,.csv,.docx"
+              />
+            </div>
+          ) : (
+            <Send />
+          )}
+        </button>
       </form>
     </div>
   );

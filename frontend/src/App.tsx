@@ -1,13 +1,15 @@
-import { BubbleChat } from './components/BubbleChat'
+
+import { ChatWidget } from './components/ChatWidget';
 import './App.css'
 import { Toaster } from "react-hot-toast";
 
 function App() {
  
 
-  return <div className='flex justify-center items-center min-h-screen'>
+  return <div className='flex justify-center items-center '>
      <Toaster position="top-right" reverseOrder={false} />
-    <BubbleChat/>
+   
+    <ChatWidget />
     </div>
 }
 
