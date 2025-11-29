@@ -243,21 +243,21 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 		}
 	}, [selectedFilesByMode.docs?.id, selectedFilesByMode.cms?.id]); // ✅ Clearer and more explicit
 
-	useEffect(() => {
-		const chatContainer = chatContainerRef.current;
-		if (!chatContainer) return;
+useEffect(() => {
+	const chatContainer = chatContainerRef.current;
+	if (!chatContainer) return;
 
-		const lastUserMsg = Array.from(
-			chatContainer.querySelectorAll(".justify-start")
-		).pop() as HTMLElement | undefined;
+	const isNearBottom =
+		chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
 
-		if (lastUserMsg) {
-			lastUserMsg.scrollIntoView({
-				behavior: "smooth",
-				block: "start",
-			});
-		}
-	}, [messagesByMode]);
+	if (isNearBottom) {
+		requestAnimationFrame(() => {
+			chatContainer.scrollTop = chatContainer.scrollHeight;
+		});
+	}
+}, [messagesByMode]);
+
+
 
 	// Reusable upload function for both drag-drop and file input
 	const uploadDocs = async (files: FileList) => {
