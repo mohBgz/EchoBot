@@ -8,12 +8,14 @@ export class Message {
   timestamp: string;
   isThinking?: boolean;
   isTyping?: boolean;
+  sentFailed?: boolean;
 
   constructor(
     from: "user" | "bot",
     text: string = "",
     isThinking: boolean = false,
-    isTyping: boolean = false
+    isTyping: boolean = false,
+    sentFailed: boolean = false
   ) {
     this.id = uuidv4();
     this.from = from;
@@ -25,6 +27,7 @@ export class Message {
     });
     this.isThinking = isThinking;
     this.isTyping = isTyping;
+    this.sentFailed = sentFailed
   }
 }
 

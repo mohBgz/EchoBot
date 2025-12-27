@@ -1,6 +1,6 @@
 declare namespace NodeJS {
   interface ProcessEnv {
     QDRANT_URL: string;
-    QDRANT_API: string;
+    QDRANT_API_KEY: string;
   }
 }

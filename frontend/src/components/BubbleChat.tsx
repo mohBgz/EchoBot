@@ -111,8 +111,9 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 			// Create error message
 			const errorMessage = new Message(
 				"bot",
-				"Something went wrong, please try again later :/",
-				false
+				"Something went wrong, please try again later.",
+				false,
+				true
 			);
 			errorMessage.displayedText = errorMessage.text;
 
@@ -203,6 +204,34 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 		cms: [],
 	});
 
+	const [keyboardOpen, setKeyboardOpen] = useState(false);
+	const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+
+	useEffect(() => {
+		const handleResize = () => {
+			// If the height drops significantly, keyboard is probably open
+			setKeyboardOpen(window.innerHeight < windowHeight - 100);
+			setWindowHeight(window.innerHeight);
+		};
+
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, [windowHeight]);
+
+	// useEffect(() => {
+	// 	const handleMessage = (event: any) => {
+	// 		if (event.data?.type === "KEYBOARD_STATE") {
+	// 			setKeyboardOpen(event.data.isOpen);
+
+	// 			alert(`Keyboard is ${event.data.isOpen ? "OPEN" : "CLOSED"}`);
+	// 		}
+	// 	};
+
+	// 	window.addEventListener("message", handleMessage);
+
+	// 	return () => window.removeEventListener("message", handleMessage);
+	// }, []);
+
 	useEffect(() => {
 		const fetchFiles = async () => {
 			try {
@@ -219,7 +248,7 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 				if (mode !== "chat" && !selectedFilesByMode[mode] && files.length > 0) {
 					setSelectedFilesByMode((prev) => ({
 						...prev,
-						[mode]: files[files.length-1],
+						[mode]: files[files.length - 1],
 					}));
 					setIsPanelOpen(true);
 				}
@@ -237,24 +266,10 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 	//const [hasSentGreeting, setHasSentGreeting] = useState(false);
 
 	useEffect(() => {
-		if ((mode === "docs" || mode === "cms") && selectedFilesByMode[mode] ) {
+		if ((mode === "docs" || mode === "cms") && selectedFilesByMode[mode]) {
 			handleRagChatAfterUpload(selectedFilesByMode[mode]);
 		}
-	}, [selectedFilesByMode.docs?.id, selectedFilesByMode.cms?.id]); // ✅ Clearer and more explicit
-
-	// useEffect(() => {
-	// 	const chatContainer = chatContainerRef.current;
-	// 	if (!chatContainer) return;
-
-	// 	const isNearBottom =
-	// 		chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
-
-	// 	if (isNearBottom) {
-	// 		requestAnimationFrame(() => {
-	// 			chatContainer.scrollTop = chatContainer.scrollHeight;
-	// 		});
-	// 	}
-	// }, [messagesByMode]);
+	}, [selectedFilesByMode.docs?.id, selectedFilesByMode.cms?.id]); // Clearer and more explicit
 
 	// Reusable upload function for both drag-drop and file input
 	const uploadDocs = async (files: FileList) => {
@@ -275,6 +290,7 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 				await axios.post(uploadUrl, formData, {
 					headers: { "Content-type": "multipart/form-data" },
 					withCredentials: true,
+					timeout: 15000,
 					onUploadProgress: (ProgressEvent) => {
 						const percentCompleted = Math.round(
 							(ProgressEvent.loaded * 100) / (ProgressEvent.total || 1)
@@ -299,8 +315,6 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 					[mode]: response.data.files[response.data.files.length - 1],
 				}));
 
-				setError("");
-
 				setIsPanelOpen(true);
 
 				// Remove loading toast and show success
@@ -309,10 +323,20 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 
 				setError("");
 			} catch (error: any) {
-				console.error("Upload error:", error.response.data.message);
-				setError(error.response.data.message);
+				console.error(
+					"Upload error:",
+					error.response?.data?.message || error.message
+				);
+				if (error.response.status === 429) {
+					setError(
+						"Too many requests. Please wait a moment before trying again."
+					);
+				} else {
+					setError("Error uploading files. Please try again.");
+				}
+
 				//duplicate key value violates unique constraint "documents_pkey"
-				toast.error("Failed to upload files. Please try again.", {
+				toast.error("Failed to upload files", {
 					duration: 3000,
 				});
 				setUploadProgress(0);
@@ -425,14 +449,29 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 					return updated;
 				});
 			}, 30);
-		} catch (error) {
+		} catch (error: any) {
 			console.error(error);
 
+			// setMessagesByMode((prev) => ({
+			// 	...prev,
+			// 	[mode]: prev[mode].filter((msg) => !msg.isThinking), // remove thinking message (iThinking === false or undefined)
+			// }));
 			setMessagesByMode((prev) => ({
 				...prev,
-				[mode]: prev[mode].filter((msg) => !msg.isThinking),
+				[mode]: prev[mode].map((msg) =>
+					msg.isThinking
+						? {
+								...msg,
+								sentFailed: true,
+								isThinking: false,
+								displayedText:
+									error?.response.status === 429
+										? "Too many requests, please wait a moment before trying again."
+										: "Failed to send message. Please try again.",
+						  }
+						: msg
+				),
 			}));
-			//alert("Failed to send message. Please try again.");
 		}
 	};
 
@@ -466,7 +505,7 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
     flex flex-col
     drop-shadow-xl
     md:rounded-2xl
-    overflow-hidden
+    overflow-auto
 	w-full
 	h-full
     shadow-lg
@@ -650,14 +689,6 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 												/>
 											)}
 
-											{/* 
-                      {mode === "cms" &&  <img
-                          className="size-6"
-                          src={jsonIcon}
-                          alt="Json Icon"
-                        />}
-
-                         */}
 											{mode === "cms" && <Braces className="text-gray-300" />}
 
 											<div className="flex-col justify-center max-w-[4rem]  md:max-w-[12rem]">
@@ -677,14 +708,14 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 												)}
 											</span>
 											<span className="text-cyan-400 text-xs select-none flex gap-1 ">
-												uploaded 
+												uploaded
 												<Check color="#00bfff" size={18} />
 											</span>
 										</div>
 
 										{/* remove icon */}
-										
-										{ !isDeleting ? (
+
+										{!isDeleting ? (
 											<div className="relative group">
 												{/* Tooltip */}
 												<div
@@ -706,9 +737,9 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 														</div>
 													)}
 											</div>
-										) : selectedFilesByMode[mode]?.id === file.id ?  (
+										) : selectedFilesByMode[mode]?.id === file.id ? (
 											<LoaderCircle className="animate-spin text-red-600" />
-										): null }
+										) : null}
 									</motion.div>
 								))}
 
@@ -839,7 +870,9 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 			{/* Input Form */}
 			<form
 				onSubmit={handleSubmit}
-				className="flex gap-3 bg-gray-900/80 backdrop-blur border-t border-gray-800 w-full px-4 py-3 items-center"
+				className={`flex gap-3 bg-gray-900/80 backdrop-blur-lg border border-l-0 border-r-0 border-blue-950 w-full px-4 py-3 items-center md:relative fixed left-0 right-0  ${
+					keyboardOpen ? "bottom-[420px]" : "bottom-20"
+				}`}
 			>
 				<div className="relative flex flex-1 items-center bg-gray-800 rounded-xl border border-gray-700 focus-within:ring-1 focus-within:ring-blue-500">
 					<input
@@ -859,7 +892,8 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 								? !uploadedFiles || uploadedFiles["cms"].length === 0
 									? "Upload a CMS file to start"
 									: `Ask me about CMS content: ${
-											displayName(selectedFilesByMode[mode]?.filename!, 12) || ""
+											displayName(selectedFilesByMode[mode]?.filename!, 12) ||
+											""
 									  }`
 								: ""
 						}`}
@@ -888,10 +922,14 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 							setIsTyping(false);
 						}
 					}}
-					className="size-10 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-all active:scale-[0.97]"
+					disabled={!inputs[mode].trim()}
+					className=" disabled:active:scale-100 disabled:hover:bg-blue-600 size-10 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-all active:scale-[0.97]"
 				>
 					{isTyping ? (
-						<Square className="text-white animate-pulse" />
+						<Square
+							onClick={() => clearInterval(intervalRef.current)}
+							className="text-white animate-pulse"
+						/>
 					) : mode !== "chat" && isPanelOpen ? (
 						<div className="group relative" onClick={handleUploadClick}>
 							{/* Tooltip */}

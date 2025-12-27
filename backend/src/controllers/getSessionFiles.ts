@@ -5,7 +5,7 @@ export const getSessionFiles = (tableName: string) => async (req: Request, res: 
   const sessionId = req.cookies?.sessionId;
   try {
     if (!sessionId)
-      return res.status(400).json({ state: "error", message: "No session cookie found" });
+      return res.status(400).json({ state: "fail", message: "No session cookie found" });
 
     const { data, error } = await supabase
       .from(tableName)
@@ -16,6 +16,6 @@ export const getSessionFiles = (tableName: string) => async (req: Request, res: 
     res.status(200).json({ state: "success", files: data });
   } catch (err: any) {
     console.error(err);
-    res.status(500).json({ state: "error", message: err.message });
+    res.status(500).json({ state: "fail", message: "Error uploading the file, please try again later." });
   }
 };

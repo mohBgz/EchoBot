@@ -23,9 +23,3 @@ export const textToEmbeddings = async (
   // console.log(embeddings)
   return embeddings;
 };
-
-// textToEmbeddings([
-//   'name:Alice | age:25',
-//   '| city:Paris |',
-//   '456465466565'
-// ])

@@ -22,6 +22,8 @@ export function ChatWidget() {
 		window.addEventListener("message", (event) => {
 			if (event.data?.type === "CLOSE_PANEL") setIsVisible(false);
 		});
+
+	
 	}, [isVisible]);
 
 	return (
