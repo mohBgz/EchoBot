@@ -204,33 +204,15 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 		cms: [],
 	});
 
-	const [keyboardOpen, setKeyboardOpen] = useState(false);
-	const [windowHeight, setWindowHeight] = useState(window.innerHeight);
-
-	useEffect(() => {
-		const handleResize = () => {
-			// If the height drops significantly, keyboard is probably open
-			setKeyboardOpen(window.innerHeight < windowHeight - 100);
-			setWindowHeight(window.innerHeight);
-		};
-
-		window.addEventListener("resize", handleResize);
-		return () => window.removeEventListener("resize", handleResize);
-	}, [windowHeight]);
-
-	// useEffect(() => {
-	// 	const handleMessage = (event: any) => {
-	// 		if (event.data?.type === "KEYBOARD_STATE") {
-	// 			setKeyboardOpen(event.data.isOpen);
-
-	// 			alert(`Keyboard is ${event.data.isOpen ? "OPEN" : "CLOSED"}`);
-	// 		}
-	// 	};
-
-	// 	window.addEventListener("message", handleMessage);
-
-	// 	return () => window.removeEventListener("message", handleMessage);
-	// }, []);
+		 useEffect(() => {
+    // Scroll to the bottom whenever messages change
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messagesByMode[mode], isTyping]); // runs every time messages update
 
 	useEffect(() => {
 		const fetchFiles = async () => {
@@ -465,7 +447,7 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 								sentFailed: true,
 								isThinking: false,
 								displayedText:
-									error?.response.status === 429
+									error?.response?.status === 429
 										? "Too many requests, please wait a moment before trying again."
 										: "Failed to send message. Please try again.",
 						  }
@@ -857,7 +839,7 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 				) : !isPanelOpen ? (
 					<ChatSection
 						key="chat-section"
-						className="bg-gradient-to-b from-gray-950 to-gray-900 flex-1 py-6 px-4 overflow-y-auto min-h-0"
+						className="bg-gradient-to-b from-gray-950 to-gray-900 flex-1 pt-10 pb-30 px-4 overflow-y-auto min-h-0"
 						mode={mode}
 						messagesByMode={messagesByMode}
 						chatContainerRef={chatContainerRef}
@@ -870,9 +852,7 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 			{/* Input Form */}
 			<form
 				onSubmit={handleSubmit}
-				className={`flex gap-3 bg-gray-900/80 backdrop-blur-lg border border-l-0 border-r-0 border-blue-950 w-full px-4 py-3 items-center md:relative fixed left-0 right-0  ${
-					keyboardOpen ? "bottom-[420px]" : "bottom-20"
-				}`}
+				className="flex gap-3  backdrop-blur-lg  border-0 border-t-1 border-blue-950 w-full px-4 py-3 items-center md:relative fixed left-0 right-0 bottom-0"
 			>
 				<div className="relative flex flex-1 items-center bg-gray-800 rounded-xl border border-gray-700 focus-within:ring-1 focus-within:ring-blue-500">
 					<input
@@ -922,12 +902,14 @@ export const BubbleChat: React.FC<BubbleChatProps> = ({
 							setIsTyping(false);
 						}
 					}}
-					disabled={!inputs[mode].trim()}
-					className=" disabled:active:scale-100 disabled:hover:bg-blue-600 size-10 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-all active:scale-[0.97]"
+					className={`size-10 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-all active:scale-[0.97]`}
 				>
 					{isTyping ? (
 						<Square
-							onClick={() => clearInterval(intervalRef.current)}
+							onClick={() => {
+								clearInterval(intervalRef.current);
+								console.log("click");
+							}}
 							className="text-white animate-pulse"
 						/>
 					) : mode !== "chat" && isPanelOpen ? (

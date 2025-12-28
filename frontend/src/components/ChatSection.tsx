@@ -4,6 +4,7 @@ import rehypeSanitize from "rehype-sanitize";
 import { TypingIndicator } from "./TypingIndicator";
 import type { Mode, MessagesByMode } from "../types/Types.js";
 
+
 export const ChatSection = ({
 	className,
 	messagesByMode,
@@ -70,6 +71,9 @@ export const ChatSection = ({
 			/>
 		),
 	};
+
+
+
 	return (
 		<div className={className} ref={chatContainerRef}>
 			{messagesByMode[mode].map((msg) => (
