@@ -12,18 +12,31 @@ export function ChatWidget() {
 	}, []);
 
 	useEffect(() => {
-		// When panel opens/closes
+		// Listen to parent messages once
+		const handleMessage = (event: MessageEvent) => {
+			const { type, isOpen } = event.data || {};
+
+			if (type === "CLOSE_PANEL") {
+				setIsVisible(false);
+			} else if (
+				type === "TOGGLE_CHAT_OVERLAY" &&
+				typeof isOpen === "boolean"
+			) {
+				setIsVisible(isOpen);
+			}
+		};
+
+		window.addEventListener("message", handleMessage);
+
+		// Cleanup listener
+		return () => window.removeEventListener("message", handleMessage);
+	}, []);
+
+	useEffect(() => {
 		window.parent.postMessage(
 			{ type: "TOGGLE_CHAT_OVERLAY", isOpen: isVisible },
 			"*"
 		);
-
-		// Listen to parent requests (like overlay click to close)
-		window.addEventListener("message", (event) => {
-			if (event.data?.type === "CLOSE_PANEL") setIsVisible(false);
-		});
-
-	
 	}, [isVisible]);
 
 	return (
@@ -34,7 +47,7 @@ export function ChatWidget() {
 			>
 				{/* Jumping Badge */}
 				{showBadge && (
-					<div className="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full animate-bounce">
+					<div className="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full animate-bounce z-40">
 						Hi!
 					</div>
 				)}
@@ -47,7 +60,9 @@ export function ChatWidget() {
 
 			{isVisible && (
 				<>
+					{/* overlay */}
 					<div className="md:h-screen md:w-screen bg-black/50 backdrop-blur-sm"></div>
+					{/* iframe - frontend app */}
 					<BubbleChat isVisible={isVisible} setIsVisible={setIsVisible} />
 				</>
 			)}
