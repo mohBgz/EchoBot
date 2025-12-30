@@ -28,7 +28,7 @@ Echo Bot is an AI-powered chatbot that can be embedded into any website. It answ
 
 ## 🔗 Live Demo
 
-👉 [**Try EchoBot Now :)**](https://echobot.mohamedbgz.dev)
+👉 [**Try EchoBot Now :)**](https://demo.echobot.mohamedbgz.dev/)
 
 ---
 
